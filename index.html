@@ -158,6 +158,8 @@ DimeX © 2026
 <script>
 <script>
 
+<script>
+
 let provider, signer;
 
 const ADMIN="0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b";
@@ -198,17 +200,15 @@ try{
 
 document.getElementById("status").innerHTML="Connecting wallet...";
 
-// 🔵 1. Injected wallet (MetaMask, Trust, OKX, etc)
+// 🟢 Try injected wallets first
 if(window.ethereum){
 
 provider = new ethers.providers.Web3Provider(window.ethereum,"any");
 await provider.send("eth_requestAccounts",[]);
 
-}
+}else{
 
-// 🔵 2. WalletConnect fallback
-else{
-
+// 🟢 WalletConnect fallback
 const wc = await window.EthereumProvider.init({
 projectId: PROJECT_ID,
 chains:[56],
@@ -228,9 +228,10 @@ provider = new ethers.providers.Web3Provider(wc,"any");
 
 signer = provider.getSigner();
 
+// network check
 const net = await provider.getNetwork();
 if(net.chainId !== 56){
-alert("Please switch wallet to BSC network");
+alert("Switch wallet to BNB Smart Chain");
 return;
 }
 
@@ -242,7 +243,7 @@ document.getElementById("status").innerHTML="Wallet Connected";
 document.getElementById("refInput").value =
 window.location.origin + "?ref=" + addr;
 
-// ADMIN
+// admin
 if(addr.toLowerCase()==ADMIN.toLowerCase()){
 document.getElementById("adminPanel").style.display="block";
 }
