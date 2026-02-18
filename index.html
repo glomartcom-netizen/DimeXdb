@@ -19,7 +19,7 @@ body{margin:0;background:#000;color:#fff;font-family:Arial;text-align:center}
 background:gold;border:none;padding:14px 22px;border-radius:10px;
 font-weight:bold;font-size:15px;cursor:pointer;margin:12px auto;
 display:flex;align-items:center;justify-content:center;gap:8px;
-min-width:220px;color:#000;
+min-width:230px;color:#000;
 }
 
 .grid{
@@ -77,7 +77,6 @@ margin-top:40px;padding:25px;border-top:1px solid #222;
 <div id="wallet"></div>
 <div id="status" style="color:gold"></div>
 
-<!-- STATS -->
 <div class="grid">
 <div class="box">Total Stake<div id="totalStake" class="value">0</div></div>
 <div class="box">Daily Reward<div id="dailyReward" class="value">0</div></div>
@@ -87,7 +86,6 @@ margin-top:40px;padding:25px;border-top:1px solid #222;
 <div class="box">Team Count<div id="teamCount" class="value">0</div></div>
 </div>
 
-<!-- STAKE -->
 <button class="btn" onclick="toggleStake()">Stake</button>
 
 <div id="stakeBox" style="display:none">
@@ -108,14 +106,12 @@ margin-top:40px;padding:25px;border-top:1px solid #222;
 
 </div>
 
-<!-- CLAIM -->
 <div class="card">
 <h3>Claim</h3>
 <div id="claimAmount" class="value">0</div>
 <button class="btn" onclick="claim()">Claim</button>
 </div>
 
-<!-- REF -->
 <div class="card">
 <h3>Referral Link</h3>
 <input id="refInput" readonly>
@@ -125,7 +121,6 @@ margin-top:40px;padding:25px;border-top:1px solid #222;
 <button class="btn" onclick="openDownline()">View Downline</button>
 <button class="btn" onclick="openHistory()">Claim History</button>
 
-<!-- ADMIN -->
 <div id="adminPanel" style="display:none">
 <div class="card">
 <h3>Admin Panel</h3>
@@ -134,7 +129,6 @@ margin-top:40px;padding:25px;border-top:1px solid #222;
 </div>
 </div>
 
-<!-- POPUPS -->
 <div class="popup" id="downlinePopup">
 <div class="popupBox">
 <h3>20 Level Downline</h3>
@@ -151,19 +145,12 @@ margin-top:40px;padding:25px;border-top:1px solid #222;
 </div>
 </div>
 
-<div class="footer">
-DimeX © 2026
-</div>
+<div class="footer">DimeX © 2026</div>
 
 <script>
-<script>
-
-<script>
-
 let provider, signer;
 
 const ADMIN="0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b";
-const PROJECT_ID="30cfec2651a089d32f1a5b62b3aa8c81";
 
 function toggleStake(){
 let b=document.getElementById("stakeBox");
@@ -195,55 +182,50 @@ document.getElementById("historyPopup").style.display="none";
 }
 
 async function connect(){
-
 try{
 
 document.getElementById("status").innerHTML="Connecting wallet...";
 
-// 🟢 Try injected wallets first
+let providerInstance=null;
+
 if(window.ethereum){
+providerInstance = new ethers.providers.Web3Provider(window.ethereum,"any");
+await providerInstance.send("eth_requestAccounts",[]);
+}
 
-provider = new ethers.providers.Web3Provider(window.ethereum,"any");
-await provider.send("eth_requestAccounts",[]);
-
-}else{
-
-// 🟢 WalletConnect fallback
+if(!providerInstance){
 const wc = await window.EthereumProvider.init({
-projectId: PROJECT_ID,
+projectId:"30cfec2651a089d32f1a5b62b3aa8c81",
 chains:[56],
 showQrModal:true,
 metadata:{
 name:"DimeX",
-description:"DimeX staking",
+description:"DimeX",
 url:window.location.origin,
 icons:["https://i.ibb.co/zVB8fHMD/logo.png"]
 }
 });
-
 await wc.enable();
-provider = new ethers.providers.Web3Provider(wc,"any");
-
+providerInstance = new ethers.providers.Web3Provider(wc,"any");
 }
 
-signer = provider.getSigner();
+provider=providerInstance;
+signer=provider.getSigner();
 
-// network check
-const net = await provider.getNetwork();
-if(net.chainId !== 56){
-alert("Switch wallet to BNB Smart Chain");
+const net=await provider.getNetwork();
+if(net.chainId!==56){
+alert("Switch to BNB Smart Chain");
 return;
 }
 
-let addr = await signer.getAddress();
+let addr=await signer.getAddress();
 
 document.getElementById("wallet").innerHTML="Wallet: "+addr;
 document.getElementById("status").innerHTML="Wallet Connected";
 
 document.getElementById("refInput").value =
-window.location.origin + "?ref=" + addr;
+window.location.origin+"?ref="+addr;
 
-// admin
 if(addr.toLowerCase()==ADMIN.toLowerCase()){
 document.getElementById("adminPanel").style.display="block";
 }
@@ -252,13 +234,12 @@ loadData();
 setInterval(loadData,8000);
 
 }catch(e){
-console.log("CONNECT ERROR:",e);
+console.log(e);
 alert("Wallet connect failed");
 }
-
 }
 
-async function loadData(){
+function loadData(){
 document.getElementById("totalStake").innerHTML=Math.floor(Math.random()*1000);
 document.getElementById("dailyReward").innerHTML=Math.floor(Math.random()*50);
 document.getElementById("directIncome").innerHTML=Math.floor(Math.random()*200);
@@ -273,7 +254,6 @@ function stakeUSDT(){alert("USDT Staked")}
 function approveDX(){alert("DMX Approved")}
 function stakeDX(){alert("DMX Staked")}
 function claim(){alert("Claim Sent")}
-
 </script>
 
 </body>
