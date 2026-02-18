@@ -192,42 +192,60 @@ document.getElementById("historyPopup").style.display="none";
 }
 
 async function connect(){
-
 try{
-document.getElementById("status").innerHTML="Connecting...";
 
+document.getElementById("status").innerHTML="Connecting wallet...";
+
+let providerInstance;
+
+// 1️⃣ Try injected wallet first
 if(window.ethereum){
-provider = new ethers.providers.Web3Provider(window.ethereum);
-await provider.send("eth_requestAccounts",[]);
-}else{
-const wc = await window.EthereumProvider.init({
-projectId:"62a73933d62534edcd2f54b8a06c4319",
-chains:[56],
-showQrModal:true,
-metadata:{name:"DimeX",url:window.location.origin,
-icons:["https://i.ibb.co/zVB8fHMD/logo.png"]}
-});
-await wc.enable();
-provider = new ethers.providers.Web3Provider(wc);
+
+providerInstance = new ethers.providers.Web3Provider(window.ethereum, "any");
+await providerInstance.send("eth_requestAccounts", []);
+
 }
 
-signer = provider.getSigner();
-const net = await provider.getNetwork();
+// 2️⃣ If no injected → WalletConnect
+else{
 
+const wc = await window.EthereumProvider.init({
+projectId:"30cfec2651a089d32f1a5b62b3aa8c81",
+chains:[56],
+showQrModal:true,
+metadata:{
+name:"DimeX",
+description:"DimeX Staking",
+url:window.location.origin,
+icons:["https://i.ibb.co/zVB8fHMD/logo.png"]
+}
+});
+
+await wc.enable();
+providerInstance = new ethers.providers.Web3Provider(wc, "any");
+}
+
+provider = providerInstance;
+signer = provider.getSigner();
+
+// network check
+const net = await provider.getNetwork();
 if(net.chainId !== 56){
-alert("Switch to BNB Smart Chain");
+alert("Switch wallet to BNB Smart Chain");
 return;
 }
 
 let addr = await signer.getAddress();
 
-document.getElementById("wallet").innerHTML="Wallet: "+addr;
-document.getElementById("status").innerHTML="Connected";
+document.getElementById("wallet").innerHTML = "Wallet: " + addr;
+document.getElementById("status").innerHTML = "Wallet Connected";
 
+// referral
 document.getElementById("refInput").value =
-window.location.origin+"?ref="+addr;
+window.location.origin + "?ref=" + addr;
 
-if(addr.toLowerCase()==ADMIN.toLowerCase()){
+// ADMIN
+if(addr.toLowerCase() == ADMIN.toLowerCase()){
 document.getElementById("adminPanel").style.display="block";
 }
 
@@ -239,7 +257,6 @@ console.log(e);
 alert("Wallet connect failed");
 }
 }
-
 async function loadData(){
 document.getElementById("totalStake").innerHTML=Math.floor(Math.random()*1000);
 document.getElementById("dailyReward").innerHTML=Math.floor(Math.random()*50);
