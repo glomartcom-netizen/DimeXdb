@@ -198,16 +198,18 @@ document.getElementById("status").innerHTML="Connecting wallet...";
 
 let providerInstance;
 
-// 1️⃣ Try injected wallet first
+// 🟢 Try injected wallet first (MetaMask, Trust etc)
 if(window.ethereum){
-
-providerInstance = new ethers.providers.Web3Provider(window.ethereum, "any");
-await providerInstance.send("eth_requestAccounts", []);
-
+try{
+providerInstance = new ethers.providers.Web3Provider(window.ethereum,"any");
+await providerInstance.send("eth_requestAccounts",[]);
+}catch(e){
+console.log("Injected rejected, fallback WalletConnect");
+}
 }
 
-// 2️⃣ If no injected → WalletConnect
-else{
+// 🔵 If still no provider → WalletConnect
+if(!providerInstance){
 
 const wc = await window.EthereumProvider.init({
 projectId:"30cfec2651a089d32f1a5b62b3aa8c81",
@@ -222,13 +224,12 @@ icons:["https://i.ibb.co/zVB8fHMD/logo.png"]
 });
 
 await wc.enable();
-providerInstance = new ethers.providers.Web3Provider(wc, "any");
+providerInstance = new ethers.providers.Web3Provider(wc,"any");
 }
 
 provider = providerInstance;
 signer = provider.getSigner();
 
-// network check
 const net = await provider.getNetwork();
 if(net.chainId !== 56){
 alert("Switch wallet to BNB Smart Chain");
@@ -237,15 +238,13 @@ return;
 
 let addr = await signer.getAddress();
 
-document.getElementById("wallet").innerHTML = "Wallet: " + addr;
-document.getElementById("status").innerHTML = "Wallet Connected";
+document.getElementById("wallet").innerHTML="Wallet: "+addr;
+document.getElementById("status").innerHTML="Wallet Connected";
 
-// referral
 document.getElementById("refInput").value =
 window.location.origin + "?ref=" + addr;
 
-// ADMIN
-if(addr.toLowerCase() == ADMIN.toLowerCase()){
+if(addr.toLowerCase()==ADMIN.toLowerCase()){
 document.getElementById("adminPanel").style.display="block";
 }
 
@@ -257,6 +256,7 @@ console.log(e);
 alert("Wallet connect failed");
 }
 }
+  
 async function loadData(){
 document.getElementById("totalStake").innerHTML=Math.floor(Math.random()*1000);
 document.getElementById("dailyReward").innerHTML=Math.floor(Math.random()*50);
