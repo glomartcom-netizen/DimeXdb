@@ -156,11 +156,12 @@ DimeX © 2026
 </div>
 
 <script>
+<script>
+
 let provider, signer;
 
 const ADMIN="0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b";
-const STAKING_ADDRESS="0x0000000000000000000000000000000000000000";
-const DX_TOKEN="0x0000000000000000000000000000000000000000";
+const PROJECT_ID="30cfec2651a089d32f1a5b62b3aa8c81";
 
 function toggleStake(){
 let b=document.getElementById("stakeBox");
@@ -192,42 +193,44 @@ document.getElementById("historyPopup").style.display="none";
 }
 
 async function connect(){
+
 try{
 
 document.getElementById("status").innerHTML="Connecting wallet...";
 
-let providerInstance;
-
-// ✅ TRY injected wallet (MetaMask, Trust, TokenPocket)
+// 🔵 1. Injected wallet (MetaMask, Trust, OKX, etc)
 if(window.ethereum){
-providerInstance = new ethers.providers.Web3Provider(window.ethereum, "any");
-await providerInstance.send("eth_requestAccounts", []);
+
+provider = new ethers.providers.Web3Provider(window.ethereum,"any");
+await provider.send("eth_requestAccounts",[]);
+
 }
 
-// ❌ if still not connected → WalletConnect
-if(!providerInstance){
+// 🔵 2. WalletConnect fallback
+else{
+
 const wc = await window.EthereumProvider.init({
-projectId:"30cfec2651a089d32f1a5b62b3aa8c81",
+projectId: PROJECT_ID,
 chains:[56],
 showQrModal:true,
 metadata:{
 name:"DimeX",
-description:"DimeX",
+description:"DimeX staking",
 url:window.location.origin,
 icons:["https://i.ibb.co/zVB8fHMD/logo.png"]
 }
 });
 
 await wc.enable();
-providerInstance = new ethers.providers.Web3Provider(wc,"any");
+provider = new ethers.providers.Web3Provider(wc,"any");
+
 }
 
-provider = providerInstance;
 signer = provider.getSigner();
 
 const net = await provider.getNetwork();
 if(net.chainId !== 56){
-alert("Switch to BNB Smart Chain");
+alert("Please switch wallet to BSC network");
 return;
 }
 
@@ -239,6 +242,7 @@ document.getElementById("status").innerHTML="Wallet Connected";
 document.getElementById("refInput").value =
 window.location.origin + "?ref=" + addr;
 
+// ADMIN
 if(addr.toLowerCase()==ADMIN.toLowerCase()){
 document.getElementById("adminPanel").style.display="block";
 }
@@ -247,11 +251,12 @@ loadData();
 setInterval(loadData,8000);
 
 }catch(e){
-console.log(e);
+console.log("CONNECT ERROR:",e);
 alert("Wallet connect failed");
 }
+
 }
-  
+
 async function loadData(){
 document.getElementById("totalStake").innerHTML=Math.floor(Math.random()*1000);
 document.getElementById("dailyReward").innerHTML=Math.floor(Math.random()*50);
@@ -267,6 +272,7 @@ function stakeUSDT(){alert("USDT Staked")}
 function approveDX(){alert("DMX Approved")}
 function stakeDX(){alert("DMX Staked")}
 function claim(){alert("Claim Sent")}
+
 </script>
 
 </body>
